@@ -93,4 +93,28 @@ class SupermarketTest {
         assertEquals(1, receipt.getDiscounts().size());
         assertEquals(1.50, receipt.getTotalPrice(), 0.01);
     }
+
+    @Test
+    void fiveForAmountDiscount() {
+        SupermarketCatalog catalog = new FakeCatalog();
+
+        Product toothbrush = new Product("toothbrush", ProductUnit.EACH);
+        catalog.addProduct(toothbrush, 0.99);
+
+        Teller teller = new Teller(catalog);
+        teller.addSpecialOffer(
+                SpecialOfferType.FIVE_FOR_AMOUNT,
+                toothbrush,
+                4.00);
+
+        ShoppingCart cart = new ShoppingCart();
+        cart.addItemQuantity(toothbrush, 5);
+
+        // ACT
+        Receipt receipt = teller.checksOutArticlesFrom(cart);
+
+        // ASSERT
+        assertEquals(1, receipt.getDiscounts().size());
+        assertEquals(4.00, receipt.getTotalPrice(), 0.01);
+    }
 }
