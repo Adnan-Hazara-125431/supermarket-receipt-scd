@@ -69,4 +69,28 @@ class SupermarketTest {
         assertEquals(1, receipt.getDiscounts().size());
         assertEquals(1.98, receipt.getTotalPrice(), 0.01);
     }
+
+    @Test
+    void twoForAmountDiscount() {
+        SupermarketCatalog catalog = new FakeCatalog();
+
+        Product toothbrush = new Product("toothbrush", ProductUnit.EACH);
+        catalog.addProduct(toothbrush, 0.99);
+
+        Teller teller = new Teller(catalog);
+        teller.addSpecialOffer(
+                SpecialOfferType.TWO_FOR_AMOUNT,
+                toothbrush,
+                1.50);
+
+        ShoppingCart cart = new ShoppingCart();
+        cart.addItemQuantity(toothbrush, 2);
+
+        // ACT
+        Receipt receipt = teller.checksOutArticlesFrom(cart);
+
+        // ASSERT
+        assertEquals(1, receipt.getDiscounts().size());
+        assertEquals(1.50, receipt.getTotalPrice(), 0.01);
+    }
 }
