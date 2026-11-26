@@ -13,33 +13,39 @@ class SupermarketTest {
     // Todo: test all kinds of discounts are applied properly
 
     @Test
-    void tenPercentDiscount() {
-        SupermarketCatalog catalog = new FakeCatalog();
-        Product toothbrush = new Product("toothbrush", ProductUnit.EACH);
-        catalog.addProduct(toothbrush, 0.99);
-        Product apples = new Product("apples", ProductUnit.KILO);
-        catalog.addProduct(apples, 1.99);
+void tenPercentDiscount() {
+    SupermarketCatalog catalog = new FakeCatalog();
 
-        Teller teller = new Teller(catalog);
-        teller.addSpecialOffer(SpecialOfferType.TEN_PERCENT_DISCOUNT, toothbrush, 10.0);
+    Product toothbrush = new Product("toothbrush", ProductUnit.EACH);
+    catalog.addProduct(toothbrush, 0.99);
 
-        ShoppingCart cart = new ShoppingCart();
-        cart.addItemQuantity(apples, 2.5);
-        
-        // ACT
-        Receipt receipt = teller.checksOutArticlesFrom(cart);
+    Teller teller = new Teller(catalog);
+    teller.addSpecialOffer(
+            SpecialOfferType.TEN_PERCENT_DISCOUNT,
+            toothbrush,
+            10.0);
 
-        // ASSERT
-        assertEquals(4.975, receipt.getTotalPrice(), 0.01);
-        assertEquals(Collections.emptyList(), receipt.getDiscounts());
-        assertEquals(1, receipt.getItems().size());
-        ReceiptItem receiptItem = receipt.getItems().get(0);
-        assertEquals(apples, receiptItem.product());
-        assertEquals(1.99, receiptItem.price());
-        assertEquals(2.5*1.99, receiptItem.totalPrice());
-        assertEquals(2.5, receiptItem.quantity());
+    ShoppingCart cart = new ShoppingCart();
+    cart.addItemQuantity(toothbrush, 2);
 
-    }
+    // ACT
+    Receipt receipt = teller.checksOutArticlesFrom(cart);
+
+    // ASSERT
+    assertEquals(1.782, receipt.getTotalPrice(), 0.01);
+
+    assertEquals(1, receipt.getDiscounts().size());
+
+    assertEquals(1, receipt.getItems().size());
+
+    ReceiptItem receiptItem = receipt.getItems().get(0);
+
+    assertEquals(toothbrush, receiptItem.product());
+    assertEquals(0.99, receiptItem.price());
+    assertEquals(1.98, receiptItem.totalPrice(), 0.01);
+    assertEquals(2, receiptItem.quantity(), 0.01);
+}
+
 
 
 }
