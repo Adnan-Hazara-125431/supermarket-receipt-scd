@@ -7,6 +7,10 @@ import java.util.List;
 import java.util.Map;
 
 public class ShoppingCart {
+    private static final int TWO_ITEMS = 2;
+    private static final int THREE_ITEMS = 3;
+    private static final int FIVE_ITEMS = 5;
+    private static final double PERCENT_DIVISOR = 100.0;
 
     private final List<ProductQuantity> items = new ArrayList<>();
     private final Map<Product, Double> productQuantities = new HashMap<>();
@@ -33,39 +37,39 @@ public class ShoppingCart {
     }
 
     void handleOffers(Receipt receipt, Map<Product, Offer> offers, SupermarketCatalog catalog) {
-        for (Product p: productQuantities().keySet()) {
-            double quantity = productQuantities.get(p);
-            if (offers.containsKey(p)) {
-                Offer offer = offers.get(p);
-                double unitPrice = catalog.getUnitPrice(p);
+        for (Product product: productQuantities().keySet()) {
+            double quantity = productQuantities.get(product);
+            if (offers.containsKey(product)) {
+                Offer offer = offers.get(product);
+                double unitPrice = catalog.getUnitPrice(product);
                 int quantityAsInt = (int) quantity;
                 Discount discount = null;
-                int x = 1;
+                int offerQuantity = 1;
                 if (offer.offerType() == SpecialOfferType.THREE_FOR_TWO) {
-                    x = 3;
+                    offerQuantity =  THREE_ITEMS;
 
                 } else if (offer.offerType() == SpecialOfferType.TWO_FOR_AMOUNT) {
-                    x = 2;
-                    if (quantityAsInt >= 2) {
-                        double total = offer.argument() * (quantityAsInt / x) + quantityAsInt % 2 * unitPrice;
-                        double discountN = unitPrice * quantity - total;
-                        discount = new Discount(p, "2 for " + offer.argument(), -discountN);
+                    offerQuantity = TWO_ITEMS;
+                    if (quantityAsInt >= TWO_ITEMS) {
+                        double total = offer.argument() * (quantityAsInt / offerQuantity) + quantityAsInt % TWO_ITEMS * unitPrice;
+                        double discountAmount = unitPrice * quantity - total;
+                        discount = new Discount(product, "2 for " + offer.argument(), -discountAmount);
                     }
 
                 } if (offer.offerType() == SpecialOfferType.FIVE_FOR_AMOUNT) {
-                    x = 5;
+                    offerQuantity = FIVE_ITEMS;
                 }
-                int numberOfXs = quantityAsInt / x;
-                if (offer.offerType() == SpecialOfferType.THREE_FOR_TWO && quantityAsInt > 2) {
-                    double discountAmount = quantity * unitPrice - ((numberOfXs * 2 * unitPrice) + quantityAsInt % 3 * unitPrice);
-                    discount = new Discount(p, "3 for 2", -discountAmount);
+                int numberOfOfferGroups = quantityAsInt / offerQuantity;
+                if (offer.offerType() == SpecialOfferType.THREE_FOR_TWO && quantityAsInt > TWO_ITEMS) {
+                    double discountAmount = quantity * unitPrice - ((numberOfOfferGroups * TWO_ITEMS * unitPrice) + quantityAsInt % THREE_ITEMS * unitPrice);
+                    discount = new Discount(product, "3 for 2", -discountAmount);
                 }
                 if (offer.offerType() == SpecialOfferType.TEN_PERCENT_DISCOUNT) {
-                    discount = new Discount(p, offer.argument() + "% off", -quantity * unitPrice * offer.argument() / 100.0);
+                    discount = new Discount(product, offer.argument() + "% off", -quantity * unitPrice * offer.argument() / PERCENT_DIVISOR);
                 }
-                if (offer.offerType() == SpecialOfferType.FIVE_FOR_AMOUNT && quantityAsInt >= 5) {
-                    double discountTotal = unitPrice * quantity - (offer.argument() * numberOfXs + quantityAsInt % 5 * unitPrice);
-                    discount = new Discount(p, x + " for " + offer.argument(), -discountTotal);
+                if (offer.offerType() == SpecialOfferType.FIVE_FOR_AMOUNT && quantityAsInt >= FIVE_ITEMS) {
+                    double discountTotal = unitPrice * quantity - (offer.argument() * numberOfOfferGroups + quantityAsInt % FIVE_ITEMS * unitPrice);
+                    discount = new Discount(product, offerQuantity + " for " + offer.argument(), -discountTotal);
                 }
                 if (discount != null)
                     receipt.addDiscount(discount);
