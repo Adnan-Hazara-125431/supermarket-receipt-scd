@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ShoppingCart {
+
     private static final int TWO_ITEMS = 2;
     private static final int THREE_ITEMS = 3;
     private static final int FIVE_ITEMS = 5;
@@ -37,48 +38,111 @@ public class ShoppingCart {
     }
 
     void handleOffers(Receipt receipt, Map<Product, Offer> offers, SupermarketCatalog catalog) {
-        for (Product product: productQuantities().keySet()) {
+        for (Product product : productQuantities().keySet()) {
             double quantity = productQuantities.get(product);
+
             if (offers.containsKey(product)) {
                 Offer offer = offers.get(product);
                 double unitPrice = catalog.getUnitPrice(product);
                 int quantityAsInt = (int) quantity;
+
                 Discount discount = null;
                 int offerQuantity = 1;
+
                 if (offer.offerType() == SpecialOfferType.THREE_FOR_TWO) {
-                    offerQuantity =  THREE_ITEMS;
+                    offerQuantity = THREE_ITEMS;
 
                 } else if (offer.offerType() == SpecialOfferType.TWO_FOR_AMOUNT) {
                     offerQuantity = TWO_ITEMS;
-                    if (quantityAsInt >= TWO_ITEMS) {
-                        double total = offer.argument() * (quantityAsInt / offerQuantity) + quantityAsInt % TWO_ITEMS * unitPrice;
-                        double discountAmount = unitPrice * quantity - total;
-                        discount = new Discount(product, "2 for " + offer.argument(), -discountAmount);
-                    }
 
-                } if (offer.offerType() == SpecialOfferType.FIVE_FOR_AMOUNT) {
+                    if (quantityAsInt >= TWO_ITEMS) {
+                        double total =
+                                offer.argument() * (quantityAsInt / offerQuantity)
+                                        + quantityAsInt % TWO_ITEMS * unitPrice;
+
+                        double discountAmount = unitPrice * quantity - total;
+
+                        discount = new Discount(
+                                product,
+                                "2 for " + offer.argument(),
+                                -discountAmount);
+                    }
+                }
+
+                if (offer.offerType() == SpecialOfferType.FIVE_FOR_AMOUNT) {
                     offerQuantity = FIVE_ITEMS;
                 }
+
                 int numberOfOfferGroups = quantityAsInt / offerQuantity;
-                if (offer.offerType() == SpecialOfferType.THREE_FOR_TWO && quantityAsInt > TWO_ITEMS) {
-                    double discountAmount = quantity * unitPrice - ((numberOfOfferGroups * TWO_ITEMS * unitPrice) + quantityAsInt % THREE_ITEMS * unitPrice);
-                    discount = new Discount(product, "3 for 2", -discountAmount);
-                }
-                if (offer.offerType() == SpecialOfferType.TEN_PERCENT_DISCOUNT) {
-                   discount = calculateTenPercentDiscount(product,offer,quantity,unitPrice);
+
+                if (offer.offerType() == SpecialOfferType.THREE_FOR_TWO
+                        && quantityAsInt > TWO_ITEMS) {
+
+                    discount = calculateThreeForTwoDiscount(
+                            product,
+                            quantity,
+                            unitPrice,
+                            quantityAsInt,
+                            numberOfOfferGroups);
                 }
 
-                if (offer.offerType() == SpecialOfferType.FIVE_FOR_AMOUNT && quantityAsInt >= FIVE_ITEMS) {
-                    double discountTotal = unitPrice * quantity - (offer.argument() * numberOfOfferGroups + quantityAsInt % FIVE_ITEMS * unitPrice);
-                    discount = new Discount(product, offerQuantity + " for " + offer.argument(), -discountTotal);
+                if (offer.offerType() == SpecialOfferType.TEN_PERCENT_DISCOUNT) {
+
+                    discount = calculateTenPercentDiscount(
+                            product,
+                            offer,
+                            quantity,
+                            unitPrice);
                 }
-                if (discount != null)
+
+                if (offer.offerType() == SpecialOfferType.FIVE_FOR_AMOUNT
+                        && quantityAsInt >= FIVE_ITEMS) {
+
+                    double discountTotal =
+                            unitPrice * quantity
+                                    - (offer.argument() * numberOfOfferGroups
+                                    + quantityAsInt % FIVE_ITEMS * unitPrice);
+
+                    discount = new Discount(
+                            product,
+                            offerQuantity + " for " + offer.argument(),
+                            -discountTotal);
+                }
+
+                if (discount != null) {
                     receipt.addDiscount(discount);
+                }
             }
         }
     }
-    private Discount calculateTenPercentDiscount(Product product,Offer offer,double quantity,double unitPrice) {
 
-    return new Discount(product,offer.argument() + "% off", -quantity * unitPrice * offer.argument() / PERCENT_DIVISOR);
-}
+    private Discount calculateTenPercentDiscount(
+            Product product,
+            Offer offer,
+            double quantity,
+            double unitPrice) {
+
+        return new Discount(
+                product,
+                offer.argument() + "% off",
+                -quantity * unitPrice * offer.argument() / PERCENT_DIVISOR);
+    }
+
+    private Discount calculateThreeForTwoDiscount(
+            Product product,
+            double quantity,
+            double unitPrice,
+            int quantityAsInt,
+            int numberOfOfferGroups) {
+
+        double discountAmount =
+                quantity * unitPrice
+                        - ((numberOfOfferGroups * TWO_ITEMS * unitPrice)
+                        + quantityAsInt % THREE_ITEMS * unitPrice);
+
+        return new Discount(
+                product,
+                "3 for 2",
+                -discountAmount);
+    }
 }
