@@ -39,75 +39,12 @@ public class ShoppingCart {
 
     void handleOffers(Receipt receipt, Map<Product, Offer> offers, SupermarketCatalog catalog) {
         for (Product product : productQuantities().keySet()) {
-            double quantity = productQuantities.get(product);
-
             if (offers.containsKey(product)) {
                 Offer offer = offers.get(product);
+                double quantity = productQuantities.get(product);
                 double unitPrice = catalog.getUnitPrice(product);
-                int quantityAsInt = (int) quantity;
 
-                Discount discount = null;
-                int offerQuantity = 1;
-
-                if (offer.offerType() == SpecialOfferType.THREE_FOR_TWO) {
-                    offerQuantity = THREE_ITEMS;
-
-                } else if (offer.offerType() == SpecialOfferType.TWO_FOR_AMOUNT) {
-                    offerQuantity = TWO_ITEMS;
-
-                    if (quantityAsInt >= TWO_ITEMS) {
-                        double total =
-                                offer.argument() * (quantityAsInt / offerQuantity)
-                                        + quantityAsInt % TWO_ITEMS * unitPrice;
-
-                        double discountAmount = unitPrice * quantity - total;
-
-                        discount = new Discount(
-                                product,
-                                "2 for " + offer.argument(),
-                                -discountAmount);
-                    }
-                }
-
-                if (offer.offerType() == SpecialOfferType.FIVE_FOR_AMOUNT) {
-                    offerQuantity = FIVE_ITEMS;
-                }
-
-                int numberOfOfferGroups = quantityAsInt / offerQuantity;
-
-                if (offer.offerType() == SpecialOfferType.THREE_FOR_TWO
-                        && quantityAsInt > TWO_ITEMS) {
-
-                    discount = calculateThreeForTwoDiscount(
-                            product,
-                            quantity,
-                            unitPrice,
-                            quantityAsInt,
-                            numberOfOfferGroups);
-                }
-
-                if (offer.offerType() == SpecialOfferType.TEN_PERCENT_DISCOUNT) {
-
-                    discount = calculateTenPercentDiscount(
-                            product,
-                            offer,
-                            quantity,
-                            unitPrice);
-                }
-
-                if (offer.offerType() == SpecialOfferType.FIVE_FOR_AMOUNT
-                        && quantityAsInt >= FIVE_ITEMS) {
-
-                    double discountTotal =
-                            unitPrice * quantity
-                                    - (offer.argument() * numberOfOfferGroups
-                                    + quantityAsInt % FIVE_ITEMS * unitPrice);
-
-                    discount = new Discount(
-                            product,
-                            offerQuantity + " for " + offer.argument(),
-                            -discountTotal);
-                }
+                Discount discount = calculateDiscount(product, offer, quantity, unitPrice);
 
                 if (discount != null) {
                     receipt.addDiscount(discount);
@@ -116,33 +53,63 @@ public class ShoppingCart {
         }
     }
 
-    private Discount calculateTenPercentDiscount(
-            Product product,
-            Offer offer,
-            double quantity,
-            double unitPrice) {
-
-        return new Discount(
-                product,
-                offer.argument() + "% off",
-                -quantity * unitPrice * offer.argument() / PERCENT_DIVISOR);
+    private Discount calculateDiscount(Product product, Offer offer, double quantity, double unitPrice) {
+        return switch (offer.offerType()) {
+            case THREE_FOR_TWO -> calculateThreeForTwoDiscount(product, quantity, unitPrice);
+            case TWO_FOR_AMOUNT -> calculateTwoForAmountDiscount(product, offer, quantity, unitPrice);
+            case FIVE_FOR_AMOUNT -> calculateFiveForAmountDiscount(product, offer, quantity, unitPrice);
+            case TEN_PERCENT_DISCOUNT -> calculateTenPercentDiscount(product, offer, quantity, unitPrice);
+        };
     }
 
-    private Discount calculateThreeForTwoDiscount(
-            Product product,
-            double quantity,
-            double unitPrice,
-            int quantityAsInt,
-            int numberOfOfferGroups) {
+    private Discount calculateThreeForTwoDiscount(Product product, double quantity, double unitPrice) {
+        int quantityAsInt = (int) quantity;
+        if (quantityAsInt < THREE_ITEMS) {
+            return null;
+        }
 
+        int numberOfOfferGroups = quantityAsInt / THREE_ITEMS;
         double discountAmount =
                 quantity * unitPrice
                         - ((numberOfOfferGroups * TWO_ITEMS * unitPrice)
                         + quantityAsInt % THREE_ITEMS * unitPrice);
 
+        return new Discount(product, "3 for 2", -discountAmount);
+    }
+
+    private Discount calculateTwoForAmountDiscount(Product product, Offer offer, double quantity, double unitPrice) {
+        int quantityAsInt = (int) quantity;
+        if (quantityAsInt < TWO_ITEMS) {
+            return null;
+        }
+
+        double total =
+                offer.argument() * (quantityAsInt / TWO_ITEMS)
+                        + quantityAsInt % TWO_ITEMS * unitPrice;
+        double discountAmount = unitPrice * quantity - total;
+
+        return new Discount(product, "2 for " + offer.argument(), -discountAmount);
+    }
+
+    private Discount calculateFiveForAmountDiscount(Product product, Offer offer, double quantity, double unitPrice) {
+        int quantityAsInt = (int) quantity;
+        if (quantityAsInt < FIVE_ITEMS) {
+            return null;
+        }
+
+        int numberOfOfferGroups = quantityAsInt / FIVE_ITEMS;
+        double discountAmount =
+                unitPrice * quantity
+                        - (offer.argument() * numberOfOfferGroups
+                        + quantityAsInt % FIVE_ITEMS * unitPrice);
+
+        return new Discount(product, FIVE_ITEMS + " for " + offer.argument(), -discountAmount);
+    }
+
+    private Discount calculateTenPercentDiscount(Product product, Offer offer, double quantity, double unitPrice) {
         return new Discount(
                 product,
-                "3 for 2",
-                -discountAmount);
+                offer.argument() + "% off",
+                -quantity * unitPrice * offer.argument() / PERCENT_DIVISOR);
     }
 }
