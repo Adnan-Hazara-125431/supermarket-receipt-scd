@@ -19,6 +19,18 @@ public class Teller {
                 throw new IllegalArgumentException("Discount percentage must be between 0 and 100");
             }
         }
+        if (offerType == SpecialOfferType.FIVE_FOR_AMOUNT) {
+            double normalPrice = catalog.getUnitPrice(product) * 5;
+            if (offerValue > normalPrice || offerValue < 0 || Double.isNaN(offerValue)) {
+                throw new IllegalArgumentException("Invalid promotional price for five products");
+            }
+        }
+        if (offerType == SpecialOfferType.TWO_FOR_AMOUNT) {
+            double normalPrice = catalog.getUnitPrice(product) * 2;
+            if (offerValue > normalPrice || offerValue < 0 || Double.isNaN(offerValue)) {
+                throw new IllegalArgumentException("Invalid promotional price for two products");
+            }
+        }
         offers.put(product, new Offer(offerType, product, offerValue));
     }
 

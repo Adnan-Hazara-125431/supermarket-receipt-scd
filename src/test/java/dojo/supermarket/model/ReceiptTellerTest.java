@@ -102,18 +102,14 @@ public class ReceiptTellerTest {
 
         Teller teller = new Teller(catalog);
 
-        teller.addSpecialOffer(SpecialOfferType.TWO_FOR_AMOUNT, toothbrush, 5.0);
-
-        ShoppingCart cart = new ShoppingCart();
-        cart.addItemQuantity(toothbrush, 2);
-        // Act
-        Receipt receipt = teller.checksOutArticlesFrom(cart);
-
-        // BUG: An overpriced offer is accepted and increases the customer's total price.
-
-        // Assert
-        assertEquals(5.0, receipt.getTotalPrice(), 0.01);
-        assertEquals(1, receipt.getDiscounts().size());
+        // Act and Assert
+        try {
+            teller.addSpecialOffer(SpecialOfferType.TWO_FOR_AMOUNT, toothbrush, 5.0);
+            fail("Overpriced offer should be rejected");
+        }
+        catch (IllegalArgumentException e) {
+            assertEquals("Invalid promotional price for two products",  e.getMessage());
+        }
     }
 
     @Test
