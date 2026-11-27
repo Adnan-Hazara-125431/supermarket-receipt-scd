@@ -176,13 +176,17 @@ public class ReceiptTellerTest {
         // Verify original total
         assertEquals(90.0, receipt.getTotalPrice(), 0.01);
 
-        // Remove discounts externally
-        receipt.getDiscounts().clear();
+        // Attempt to remove discounts externally
+        try {
+            receipt.getDiscounts().clear();
+            fail("Discount list should not be modifiable");
+        }
+        catch (UnsupportedOperationException e) {
+            System.out.println("Discount list is protected");
+        }
 
-        // BUG: External code can remove discounts and change the receipt total.
-
-        // Assert
-        assertEquals(100.0, receipt.getTotalPrice(), 0.01);
-        assertEquals(0, receipt.getDiscounts().size());
+        // Verify that the receipt remains unchanged
+        assertEquals(90.0, receipt.getTotalPrice(), 0.01);
+        assertEquals(1, receipt.getDiscounts().size());
     }
 }
