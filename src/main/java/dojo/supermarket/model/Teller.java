@@ -17,6 +17,10 @@ public class Teller {
         offers.put(product, new Offer(offerType, product, argument));
     }
 
+    private double calculateTotalPrice(double quantity, double unitPrice) {
+        return quantity * unitPrice;
+    }
+
     public Receipt checksOutArticlesFrom(ShoppingCart theCart) {
         Receipt receipt = new Receipt();
         List<ProductQuantity> productQuantities = theCart.getItems();
@@ -24,7 +28,7 @@ public class Teller {
             Product p = pq.product();
             double quantity = pq.quantity();
             double unitPrice = catalog.getUnitPrice(p);
-            double price = quantity * unitPrice;
+            double price = calculateTotalPrice(quantity, unitPrice);
             ReceiptItem item = new ReceiptItem(p, quantity, unitPrice, price);
             receipt.addProduct(item);
         }
