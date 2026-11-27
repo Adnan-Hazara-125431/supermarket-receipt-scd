@@ -14,6 +14,11 @@ public class Teller {
     }
 
     public void addSpecialOffer(SpecialOfferType offerType, Product product, double offerValue) {
+        if (offerType == SpecialOfferType.TEN_PERCENT_DISCOUNT) {
+            if (offerValue < 0 || offerValue > 100 || Double.isNaN(offerValue)) {
+                throw new IllegalArgumentException("Discount percentage must be between 0 and 100");
+            }
+        }
         offers.put(product, new Offer(offerType, product, offerValue));
     }
 

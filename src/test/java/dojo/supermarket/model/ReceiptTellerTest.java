@@ -8,7 +8,6 @@ public class ReceiptTellerTest {
 
     @Test
     void sameProductAddedTwice() {
-
         // Arrange
         SupermarketCatalog catalog = new FakeCatalog();
         Product milk = new Product("milk", ProductUnit.EACH);
@@ -28,12 +27,10 @@ public class ReceiptTellerTest {
         assertEquals(500.0, receipt.getTotalPrice(), 0.01);
         assertEquals(2.0, receipt.getItems().get(0).quantity());
         assertEquals(3.0, receipt.getItems().get(1).quantity());
-
     }
 
     @Test
     void twoOffersOnSameProduct() {
-
         // Arrange
         SupermarketCatalog catalog = new FakeCatalog();
         Product milk = new Product("milk", ProductUnit.EACH);
@@ -59,7 +56,6 @@ public class ReceiptTellerTest {
 
     @Test
     void invalidPercentageDiscount150() {
-
         // Arrange
         SupermarketCatalog catalog = new FakeCatalog();
         Product milk = new Product("milk", ProductUnit.EACH);
@@ -67,24 +63,19 @@ public class ReceiptTellerTest {
 
         Teller teller = new Teller(catalog);
 
-        teller.addSpecialOffer(SpecialOfferType.TEN_PERCENT_DISCOUNT, milk, 150.0);
-
-        ShoppingCart cart = new ShoppingCart();
-        cart.addItemQuantity(milk, 1);
-
-        // Act
-        Receipt receipt = teller.checksOutArticlesFrom(cart);
-
-        // BUG: A discount above 100% is accepted and produces a negative receipt total.
-
-        // Assert
-        assertEquals(-50.0, receipt.getTotalPrice(), 0.01);
-        assertEquals(1, receipt.getDiscounts().size());
+        // Act and Assert
+        try {
+            teller.addSpecialOffer(
+                    SpecialOfferType.TEN_PERCENT_DISCOUNT, milk, 150.0);
+            fail("Discount above 100 should be rejected");
+        }
+        catch (IllegalArgumentException e) {
+            assertEquals("Discount percentage must be between 0 and 100",  e.getMessage());
+        }
     }
 
     @Test
     void negativePercentageDiscount() {
-
         // Arrange
         SupermarketCatalog catalog = new FakeCatalog();
         Product milk = new Product("milk", ProductUnit.EACH);
@@ -92,24 +83,18 @@ public class ReceiptTellerTest {
 
         Teller teller = new Teller(catalog);
 
-        teller.addSpecialOffer(SpecialOfferType.TEN_PERCENT_DISCOUNT, milk, -20.0);
-
-        ShoppingCart cart = new ShoppingCart();
-        cart.addItemQuantity(milk, 1);
-
-        // Act
-        Receipt receipt = teller.checksOutArticlesFrom(cart);
-
-        // BUG: A negative discount is accepted and increases the customer's total price.
-
-        // Assert
-        assertEquals(120.0, receipt.getTotalPrice(), 0.01);
-        assertEquals(1, receipt.getDiscounts().size());
+        // Act and Assert
+        try {
+            teller.addSpecialOffer(SpecialOfferType.TEN_PERCENT_DISCOUNT, milk, -20.0);
+            fail("Negative discount should be rejected");
+        }
+        catch (IllegalArgumentException e) {
+            assertEquals("Discount percentage must be between 0 and 100",  e.getMessage());
+        }
     }
 
     @Test
     void overpricedSpecialOffer() {
-
         // Arrange
         SupermarketCatalog catalog = new FakeCatalog();
         Product toothbrush = new Product("toothbrush", ProductUnit.EACH);
@@ -121,7 +106,6 @@ public class ReceiptTellerTest {
 
         ShoppingCart cart = new ShoppingCart();
         cart.addItemQuantity(toothbrush, 2);
-
         // Act
         Receipt receipt = teller.checksOutArticlesFrom(cart);
 
@@ -134,7 +118,6 @@ public class ReceiptTellerTest {
 
     @Test
     void unknownProduct() {
-
         // Arrange
         SupermarketCatalog catalog = new FakeCatalog();
         Product chocolate = new Product("chocolate", ProductUnit.EACH);
@@ -156,8 +139,92 @@ public class ReceiptTellerTest {
     }
 
     @Test
-    void tamperWithDiscounts() {
+    void zeroPercentageDiscount() {
+        // Arrange
+        SupermarketCatalog catalog = new FakeCatalog();
+        Product milk = new Product("milk", ProductUnit.EACH);
+        catalog.addProduct(milk, 100.0);
 
+        Teller teller = new Teller(catalog);
+
+        teller.addSpecialOffer(
+                SpecialOfferType.TEN_PERCENT_DISCOUNT, milk, 0.0);
+
+        ShoppingCart cart = new ShoppingCart();
+        cart.addItemQuantity(milk, 1);
+
+        // Act
+        Receipt receipt = teller.checksOutArticlesFrom(cart);
+
+        // Assert
+        assertEquals(100.0, receipt.getTotalPrice(), 0.01);
+    }
+
+    @Test
+    void hundredPercentageDiscount() {
+        // Arrange
+        SupermarketCatalog catalog = new FakeCatalog();
+        Product milk = new Product("milk", ProductUnit.EACH);
+        catalog.addProduct(milk, 100.0);
+
+        Teller teller = new Teller(catalog);
+
+        teller.addSpecialOffer(SpecialOfferType.TEN_PERCENT_DISCOUNT, milk, 100.0);
+
+        ShoppingCart cart = new ShoppingCart();
+        cart.addItemQuantity(milk, 1);
+
+        // Act
+        Receipt receipt = teller.checksOutArticlesFrom(cart);
+
+        // Assert
+        assertEquals(0.0, receipt.getTotalPrice(), 0.01);
+    }
+
+    @Test
+    void invalidBoundaryDiscounts() {
+        // Arrange
+        SupermarketCatalog catalog = new FakeCatalog();
+        Product milk = new Product("milk", ProductUnit.EACH);
+        catalog.addProduct(milk, 100.0);
+
+        Teller teller = new Teller(catalog);
+
+        double[] values = {-0.01, 100.01};
+
+        // Test both invalid values
+        for (double value : values) {
+            try {
+                teller.addSpecialOffer(SpecialOfferType.TEN_PERCENT_DISCOUNT, milk, value);
+                fail("Invalid discount should be rejected");
+            }
+            catch (IllegalArgumentException e) {
+                assertEquals("Discount percentage must be between 0 and 100", e.getMessage());
+            }
+        }
+    }
+
+    @Test
+    void invalidNaNDiscount() {
+        // Arrange
+        SupermarketCatalog catalog = new FakeCatalog();
+        Product milk = new Product("milk", ProductUnit.EACH);
+        catalog.addProduct(milk, 100.0);
+
+        Teller teller = new Teller(catalog);
+
+        // Act and Assert
+        try {
+            teller.addSpecialOffer(SpecialOfferType.TEN_PERCENT_DISCOUNT,  milk, Double.NaN);
+            fail("NaN discount should be rejected");
+        }
+        catch (IllegalArgumentException e) {
+            assertEquals("Discount percentage must be between 0 and 100",  e.getMessage());
+        }
+    }
+
+    @Test
+    void tamperWithDiscounts() {
         // Arrange
         SupermarketCatalog catalog = new FakeCatalog();
         Product milk = new Product("milk", ProductUnit.EACH);
