@@ -65,8 +65,9 @@ public class ShoppingCart {
                     discount = new Discount(product, "3 for 2", -discountAmount);
                 }
                 if (offer.offerType() == SpecialOfferType.TEN_PERCENT_DISCOUNT) {
-                    discount = new Discount(product, offer.argument() + "% off", -quantity * unitPrice * offer.argument() / PERCENT_DIVISOR);
+                   discount = calculateTenPercentDiscount(product,offer,quantity,unitPrice);
                 }
+
                 if (offer.offerType() == SpecialOfferType.FIVE_FOR_AMOUNT && quantityAsInt >= FIVE_ITEMS) {
                     double discountTotal = unitPrice * quantity - (offer.argument() * numberOfOfferGroups + quantityAsInt % FIVE_ITEMS * unitPrice);
                     discount = new Discount(product, offerQuantity + " for " + offer.argument(), -discountTotal);
@@ -76,4 +77,8 @@ public class ShoppingCart {
             }
         }
     }
+    private Discount calculateTenPercentDiscount(Product product,Offer offer,double quantity,double unitPrice) {
+
+    return new Discount(product,offer.argument() + "% off", -quantity * unitPrice * offer.argument() / PERCENT_DIVISOR);
+}
 }
