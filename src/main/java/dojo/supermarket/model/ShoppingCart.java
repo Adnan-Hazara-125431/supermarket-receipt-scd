@@ -2,6 +2,7 @@ package dojo.supermarket.model;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +16,17 @@ public class ShoppingCart {
 
     private final List<ProductQuantity> items = new ArrayList<>();
     private final Map<Product, Double> productQuantities = new HashMap<>();
+
+    private static final Map<SpecialOfferType, OfferCalculator> CALCULATORS = createCalculators();
+
+    private static Map<SpecialOfferType, OfferCalculator> createCalculators() {
+        Map<SpecialOfferType, OfferCalculator> calculators = new EnumMap<>(SpecialOfferType.class);
+        calculators.put(SpecialOfferType.THREE_FOR_TWO, new ThreeForTwoDiscountCalculator());
+        calculators.put(SpecialOfferType.TWO_FOR_AMOUNT, new TwoForAmountDiscountCalculator());
+        calculators.put(SpecialOfferType.FIVE_FOR_AMOUNT, new FiveForAmountDiscountCalculator());
+        calculators.put(SpecialOfferType.TEN_PERCENT_DISCOUNT, new PercentDiscountCalculator());
+        return calculators;
+    }
 
     List<ProductQuantity> getItems() {
         return Collections.unmodifiableList(items);
@@ -54,12 +66,7 @@ public class ShoppingCart {
     }
 
     private Discount calculateDiscount(Product product, Offer offer, double quantity, double unitPrice) {
-        return switch (offer.offerType()) {
-            case THREE_FOR_TWO -> calculateThreeForTwoDiscount(product, quantity, unitPrice);
-            case TWO_FOR_AMOUNT -> calculateTwoForAmountDiscount(product, offer, quantity, unitPrice);
-            case FIVE_FOR_AMOUNT -> calculateFiveForAmountDiscount(product, offer, quantity, unitPrice);
-            case TEN_PERCENT_DISCOUNT -> calculateTenPercentDiscount(product, offer, quantity, unitPrice);
-        };
+        return CALCULATORS.get(offer.offerType()).calculate(product, offer, quantity, unitPrice);
     }
 
     private Discount calculateThreeForTwoDiscount(Product product, double quantity, double unitPrice) {
