@@ -21,6 +21,9 @@ public class Teller {
     }
 
     public void addSpecialOffer(SpecialOfferType offerType, Product product, double offerValue) {
+        if (offers.containsKey(product)) {
+            throw new IllegalArgumentException("An offer already exists for " + product.name());
+        }
         if (offerType == SpecialOfferType.TEN_PERCENT_DISCOUNT) {
             if (offerValue < 0 || offerValue > 100 || Double.isNaN(offerValue)) {
                 throw new IllegalArgumentException("Discount percentage must be between 0 and 100");

@@ -38,8 +38,15 @@ public class ReceiptTellerTest {
 
         Teller teller = new Teller(catalog);
 
+        // Register first offer
         teller.addSpecialOffer(SpecialOfferType.TEN_PERCENT_DISCOUNT, milk, 10.0);
-        teller.addSpecialOffer(SpecialOfferType.TEN_PERCENT_DISCOUNT, milk, 20.0);
+        // Attempt to register second offer
+        try {
+            teller.addSpecialOffer(SpecialOfferType.TEN_PERCENT_DISCOUNT, milk, 20.0);
+            fail("Duplicate offer should be rejected");
+        }
+        catch (IllegalArgumentException e) {assertEquals("An offer already exists for milk", e.getMessage());
+        }
 
         ShoppingCart cart = new ShoppingCart();
         cart.addItemQuantity(milk, 1);
@@ -47,10 +54,8 @@ public class ReceiptTellerTest {
         // Act
         Receipt receipt = teller.checksOutArticlesFrom(cart);
 
-        // BUG: The second offer silently replaces the first.
-
-        // Assert
-        assertEquals(80.0, receipt.getTotalPrice(), 0.01);
+        // Verify that the original offer remains unchanged
+        assertEquals(90.0, receipt.getTotalPrice(), 0.01);
         assertEquals(1, receipt.getDiscounts().size());
     }
 
