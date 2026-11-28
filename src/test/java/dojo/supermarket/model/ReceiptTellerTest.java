@@ -422,4 +422,23 @@ public class ReceiptTellerTest {
         assertEquals(90.0, receipt.getTotalPrice(), 0.01);
         assertEquals(1, receipt.getDiscounts().size());
     }
+
+    @Test
+    void unknownProductPercentageOffer() {
+        // Arrange
+        SupermarketCatalog catalog = new FakeCatalog();
+        Product chocolate = new Product("chocolate", ProductUnit.EACH);
+
+        Teller teller = new Teller(catalog);
+
+        // Act and Assert
+        try {
+            teller.addSpecialOffer(SpecialOfferType.TEN_PERCENT_DISCOUNT, chocolate, 10.0);
+            fail("Unknown product should be rejected");
+        }
+        catch (IllegalArgumentException e) {
+            assertEquals("Product chocolate was not found in the catalog", e.getMessage());
+        }
+    }
+
 }
