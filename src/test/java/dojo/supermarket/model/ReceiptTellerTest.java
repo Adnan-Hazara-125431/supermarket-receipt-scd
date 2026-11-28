@@ -1,6 +1,7 @@
 package dojo.supermarket.model;
 
 import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -44,8 +45,8 @@ public class ReceiptTellerTest {
         try {
             teller.addSpecialOffer(SpecialOfferType.TEN_PERCENT_DISCOUNT, milk, 20.0);
             fail("Duplicate offer should be rejected");
-        }
-        catch (IllegalArgumentException e) {assertEquals("An offer already exists for milk", e.getMessage());
+        } catch (IllegalArgumentException e) {
+            assertEquals("An offer already exists for milk", e.getMessage());
         }
 
         ShoppingCart cart = new ShoppingCart();
@@ -73,9 +74,8 @@ public class ReceiptTellerTest {
             teller.addSpecialOffer(
                     SpecialOfferType.TEN_PERCENT_DISCOUNT, milk, 150.0);
             fail("Discount above 100 should be rejected");
-        }
-        catch (IllegalArgumentException e) {
-            assertEquals("Discount percentage must be between 0 and 100",  e.getMessage());
+        } catch (IllegalArgumentException e) {
+            assertEquals("Discount percentage must be between 0 and 100", e.getMessage());
         }
     }
 
@@ -92,9 +92,8 @@ public class ReceiptTellerTest {
         try {
             teller.addSpecialOffer(SpecialOfferType.TEN_PERCENT_DISCOUNT, milk, -20.0);
             fail("Negative discount should be rejected");
-        }
-        catch (IllegalArgumentException e) {
-            assertEquals("Discount percentage must be between 0 and 100",  e.getMessage());
+        } catch (IllegalArgumentException e) {
+            assertEquals("Discount percentage must be between 0 and 100", e.getMessage());
         }
     }
 
@@ -111,9 +110,8 @@ public class ReceiptTellerTest {
         try {
             teller.addSpecialOffer(SpecialOfferType.TWO_FOR_AMOUNT, toothbrush, 5.0);
             fail("Overpriced offer should be rejected");
-        }
-        catch (IllegalArgumentException e) {
-            assertEquals("Invalid promotional price for two products",  e.getMessage());
+        } catch (IllegalArgumentException e) {
+            assertEquals("Invalid promotional price for two products", e.getMessage());
         }
     }
 
@@ -152,8 +150,7 @@ public class ReceiptTellerTest {
         try {
             teller.addSpecialOffer(SpecialOfferType.FIVE_FOR_AMOUNT, toothbrush, 12.0);
             fail("Overpriced offer should be rejected");
-        }
-        catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             assertEquals("Invalid promotional price for five products", e.getMessage());
         }
     }
@@ -219,8 +216,7 @@ public class ReceiptTellerTest {
         try {
             teller.addSpecialOffer(SpecialOfferType.TWO_FOR_AMOUNT, toothbrush, -1.0);
             fail("Negative promotional price should be rejected");
-        }
-        catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             assertEquals("Invalid promotional price for two products", e.getMessage());
         }
 
@@ -228,8 +224,7 @@ public class ReceiptTellerTest {
         try {
             teller.addSpecialOffer(SpecialOfferType.FIVE_FOR_AMOUNT, toothbrush, -1.0);
             fail("Negative promotional price should be rejected");
-        }
-        catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             assertEquals("Invalid promotional price for five products", e.getMessage());
         }
     }
@@ -248,8 +243,7 @@ public class ReceiptTellerTest {
         try {
             teller.addSpecialOffer(SpecialOfferType.TWO_FOR_AMOUNT, toothbrush, Double.NaN);
             fail("NaN promotional price should be rejected");
-        }
-        catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             assertEquals("Invalid promotional price for two products", e.getMessage());
         }
 
@@ -257,8 +251,7 @@ public class ReceiptTellerTest {
         try {
             teller.addSpecialOffer(SpecialOfferType.FIVE_FOR_AMOUNT, toothbrush, Double.NaN);
             fail("NaN promotional price should be rejected");
-        }
-        catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             assertEquals("Invalid promotional price for five products", e.getMessage());
         }
     }
@@ -278,11 +271,8 @@ public class ReceiptTellerTest {
         try {
             teller.checksOutArticlesFrom(cart);
             fail("Unknown product should be rejected");
-        }
-        catch (IllegalArgumentException e) {
-            assertEquals(
-                    "Product chocolate was not found in the catalog",
-                    e.getMessage());
+        } catch (IllegalArgumentException e) {
+            assertEquals("Product chocolate was not found in the catalog", e.getMessage());
         }
     }
 
@@ -298,8 +288,7 @@ public class ReceiptTellerTest {
         try {
             teller.addSpecialOffer(SpecialOfferType.TWO_FOR_AMOUNT, chocolate, 5.0);
             fail("Unknown product should be rejected");
-        }
-        catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             assertEquals("Product chocolate was not found in the catalog", e.getMessage());
         }
     }
@@ -363,8 +352,7 @@ public class ReceiptTellerTest {
             try {
                 teller.addSpecialOffer(SpecialOfferType.TEN_PERCENT_DISCOUNT, milk, value);
                 fail("Invalid discount should be rejected");
-            }
-            catch (IllegalArgumentException e) {
+            } catch (IllegalArgumentException e) {
                 assertEquals("Discount percentage must be between 0 and 100", e.getMessage());
             }
         }
@@ -381,11 +369,10 @@ public class ReceiptTellerTest {
 
         // Act and Assert
         try {
-            teller.addSpecialOffer(SpecialOfferType.TEN_PERCENT_DISCOUNT,  milk, Double.NaN);
+            teller.addSpecialOffer(SpecialOfferType.TEN_PERCENT_DISCOUNT, milk, Double.NaN);
             fail("NaN discount should be rejected");
-        }
-        catch (IllegalArgumentException e) {
-            assertEquals("Discount percentage must be between 0 and 100",  e.getMessage());
+        } catch (IllegalArgumentException e) {
+            assertEquals("Discount percentage must be between 0 and 100", e.getMessage());
         }
     }
 
@@ -413,8 +400,7 @@ public class ReceiptTellerTest {
         try {
             receipt.getDiscounts().clear();
             fail("Discount list should not be modifiable");
-        }
-        catch (UnsupportedOperationException e) {
+        } catch (UnsupportedOperationException e) {
             System.out.println("Discount list is protected");
         }
 
@@ -435,8 +421,7 @@ public class ReceiptTellerTest {
         try {
             teller.addSpecialOffer(SpecialOfferType.TEN_PERCENT_DISCOUNT, chocolate, 10.0);
             fail("Unknown product should be rejected");
-        }
-        catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             assertEquals("Product chocolate was not found in the catalog", e.getMessage());
         }
     }
@@ -451,8 +436,7 @@ public class ReceiptTellerTest {
         try {
             teller.addSpecialOffer(SpecialOfferType.TEN_PERCENT_DISCOUNT, null, 10.0);
             fail("Null product should be rejected");
-        }
-        catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             assertEquals("Product cannot be null", e.getMessage());
         }
     }

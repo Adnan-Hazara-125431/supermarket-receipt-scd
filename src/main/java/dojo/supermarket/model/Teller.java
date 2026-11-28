@@ -21,8 +21,7 @@ public class Teller {
         }
         try {
             return catalog.getUnitPrice(product);
-        }
-        catch (NullPointerException e) {
+        } catch (NullPointerException e) {
             throw new IllegalArgumentException("Product " + product.name() + " was not found in the catalog", e);
         }
     }
@@ -48,7 +47,7 @@ public class Teller {
             validatePromotionalPrice(product, offerValue, FIVE_PRODUCT_QUANTITY, "Invalid promotional price for five products");
         }
         if (offerType == SpecialOfferType.TWO_FOR_AMOUNT) {
-            validatePromotionalPrice(product, offerValue,  TWO_PRODUCT_QUANTITY, "Invalid promotional price for two products");
+            validatePromotionalPrice(product, offerValue, TWO_PRODUCT_QUANTITY, "Invalid promotional price for two products");
         }
         offers.put(product, new Offer(offerType, product, offerValue));
     }
@@ -60,7 +59,7 @@ public class Teller {
     public Receipt checksOutArticlesFrom(ShoppingCart cart) {
         Receipt receipt = new Receipt();
         List<ProductQuantity> productQuantities = cart.getItems();
-        for (ProductQuantity productQuantity: productQuantities) {
+        for (ProductQuantity productQuantity : productQuantities) {
             Product product = productQuantity.product();
             double quantity = productQuantity.quantity();
             double unitPrice = getProductPrice(product);
