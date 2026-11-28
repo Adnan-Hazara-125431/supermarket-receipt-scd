@@ -14,8 +14,8 @@ public class Receipt {
                 + discounts.stream().mapToDouble(Discount::discountAmount).sum();
     }
 
-    public void addProduct(Product p, double quantity, double price, double totalPrice) {
-        items.add(new ReceiptItem(p, quantity, price, totalPrice));
+    public void addProduct(ReceiptItem item) {
+        items.add(item);
     }
 
     public List<ReceiptItem> getItems() {
@@ -27,6 +27,6 @@ public class Receipt {
     }
 
     public List<Discount> getDiscounts() {
-        return discounts;
+        return Collections.unmodifiableList(discounts);
     }
 }
