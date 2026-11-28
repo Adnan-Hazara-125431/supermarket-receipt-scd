@@ -1,15 +1,27 @@
+
 package dojo.supermarket.model;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class ShoppingCart {
 
+    private static final Map<SpecialOfferType, OfferCalculator> CALCULATORS = createCalculators();
+
     private final List<ProductQuantity> items = new ArrayList<>();
-    private final Map<Product, Double> productQuantities = new HashMap<>();
+
+    private static Map<SpecialOfferType, OfferCalculator> createCalculators() {
+        Map<SpecialOfferType, OfferCalculator> calculators = new EnumMap<>(SpecialOfferType.class);
+        calculators.put(SpecialOfferType.THREE_FOR_TWO, new ThreeForTwoDiscountCalculator());
+        calculators.put(SpecialOfferType.TWO_FOR_AMOUNT, new TwoForAmountDiscountCalculator());
+        calculators.put(SpecialOfferType.FIVE_FOR_AMOUNT, new FiveForAmountDiscountCalculator());
+        calculators.put(SpecialOfferType.TEN_PERCENT_DISCOUNT, new PercentDiscountCalculator());
+        return calculators;
+    }
 
     List<ProductQuantity> getItems() {
         return Collections.unmodifiableList(items);
@@ -19,57 +31,52 @@ public class ShoppingCart {
         addItemQuantity(product, 1.0);
     }
 
-    Map<Product, Double> productQuantities() {
-        return Collections.unmodifiableMap(productQuantities);
-    }
-
     public void addItemQuantity(Product product, double quantity) {
-        items.add(new ProductQuantity(product, quantity));
-        if (productQuantities.containsKey(product)) {
-            productQuantities.put(product, productQuantities.get(product) + quantity);
-        } else {
-            productQuantities.put(product, quantity);
+
+        if (product == null) {
+            throw new IllegalArgumentException("Product cannot be null");
         }
+
+        if (!Double.isFinite(quantity) || quantity <= 0) {
+            throw new IllegalArgumentException(
+                    "Quantity must be a finite number greater than zero"
+            );
+        }
+
+        items.add(new ProductQuantity(product, quantity));
     }
 
-    void handleOffers(Receipt receipt, Map<Product, Offer> offers, SupermarketCatalog catalog) {
-        for (Product p: productQuantities().keySet()) {
-            double quantity = productQuantities.get(p);
-            if (offers.containsKey(p)) {
-                Offer offer = offers.get(p);
-                double unitPrice = catalog.getUnitPrice(p);
-                int quantityAsInt = (int) quantity;
-                Discount discount = null;
-                int x = 1;
-                if (offer.offerType() == SpecialOfferType.THREE_FOR_TWO) {
-                    x = 3;
+    void handleOffers(Receipt receipt, Map<Product, Offer> offers,
+                      SupermarketCatalog catalog) {
 
-                } else if (offer.offerType() == SpecialOfferType.TWO_FOR_AMOUNT) {
-                    x = 2;
-                    if (quantityAsInt >= 2) {
-                        double total = offer.argument() * (quantityAsInt / x) + quantityAsInt % 2 * unitPrice;
-                        double discountN = unitPrice * quantity - total;
-                        discount = new Discount(p, "2 for " + offer.argument(), -discountN);
-                    }
+        Map<Product, Double> quantities = new HashMap<>();
 
-                } if (offer.offerType() == SpecialOfferType.FIVE_FOR_AMOUNT) {
-                    x = 5;
-                }
-                int numberOfXs = quantityAsInt / x;
-                if (offer.offerType() == SpecialOfferType.THREE_FOR_TWO && quantityAsInt > 2) {
-                    double discountAmount = quantity * unitPrice - ((numberOfXs * 2 * unitPrice) + quantityAsInt % 3 * unitPrice);
-                    discount = new Discount(p, "3 for 2", -discountAmount);
-                }
-                if (offer.offerType() == SpecialOfferType.TEN_PERCENT_DISCOUNT) {
-                    discount = new Discount(p, offer.argument() + "% off", -quantity * unitPrice * offer.argument() / 100.0);
-                }
-                if (offer.offerType() == SpecialOfferType.FIVE_FOR_AMOUNT && quantityAsInt >= 5) {
-                    double discountTotal = unitPrice * quantity - (offer.argument() * numberOfXs + quantityAsInt % 5 * unitPrice);
-                    discount = new Discount(p, x + " for " + offer.argument(), -discountTotal);
-                }
-                if (discount != null)
+        // Calculate the total quantity of each product
+        for (ProductQuantity item : items) {
+            quantities.merge(item.product(), item.quantity(), Double::sum);
+        }
+
+        // Calculate discounts using the combined quantities
+        for (Product product : quantities.keySet()) {
+            if (offers.containsKey(product)) {
+                Offer offer = offers.get(product);
+                double quantity = quantities.get(product);
+                double unitPrice = catalog.getUnitPrice(product);
+
+                Discount discount = calculateDiscount(
+                        product, offer, quantity, unitPrice
+                );
+
+                if (discount != null) {
                     receipt.addDiscount(discount);
+                }
             }
         }
+    }
+
+    private Discount calculateDiscount(Product product, Offer offer,
+                                        double quantity, double unitPrice) {
+        return CALCULATORS.get(offer.offerType())
+                .calculate(product, offer, quantity, unitPrice);
     }
 }
