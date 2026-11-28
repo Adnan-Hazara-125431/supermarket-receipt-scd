@@ -13,8 +13,17 @@ public class Teller {
         this.catalog = catalog;
     }
 
+    private double getProductPrice(Product product) {
+        try {
+            return catalog.getUnitPrice(product);
+        }
+        catch (NullPointerException e) {
+            throw new IllegalArgumentException("Product " + product.name() + " was not found in the catalog", e);
+        }
+    }
+
     private void validatePromotionalPrice(Product product, double offerValue, int quantity, String errorMessage) {
-        double normalPrice = catalog.getUnitPrice(product) * quantity;
+        double normalPrice = getProductPrice(product) * quantity;
         if (offerValue > normalPrice || offerValue < 0 || Double.isNaN(offerValue)) {
             throw new IllegalArgumentException(errorMessage);
         }
@@ -48,7 +57,7 @@ public class Teller {
         for (ProductQuantity productQuantity: productQuantities) {
             Product product = productQuantity.product();
             double quantity = productQuantity.quantity();
-            double unitPrice = catalog.getUnitPrice(product);
+            double unitPrice = getProductPrice(product);
             double totalPrice = calculateTotalPrice(quantity, unitPrice);
             ReceiptItem item = new ReceiptItem(product, quantity, unitPrice, totalPrice);
             receipt.addProduct(item);

@@ -274,14 +274,33 @@ public class ReceiptTellerTest {
 
         cart.addItemQuantity(chocolate, 1);
 
-        // Act
+        // Act and Assert
         try {
             teller.checksOutArticlesFrom(cart);
-            fail("Expected an exception");
+            fail("Unknown product should be rejected");
         }
-        catch (NullPointerException e) {
-            // BUG: Unknown product causes a NullPointerException.
-            System.out.println("Unknown product exception confirmed");
+        catch (IllegalArgumentException e) {
+            assertEquals(
+                    "Product chocolate was not found in the catalog",
+                    e.getMessage());
+        }
+    }
+
+    @Test
+    void unknownProductPromotionalOffer() {
+        // Arrange
+        SupermarketCatalog catalog = new FakeCatalog();
+        Product chocolate = new Product("chocolate", ProductUnit.EACH);
+
+        Teller teller = new Teller(catalog);
+
+        // Act and Assert
+        try {
+            teller.addSpecialOffer(SpecialOfferType.TWO_FOR_AMOUNT, chocolate, 5.0);
+            fail("Unknown product should be rejected");
+        }
+        catch (IllegalArgumentException e) {
+            assertEquals("Product chocolate was not found in the catalog", e.getMessage());
         }
     }
 
