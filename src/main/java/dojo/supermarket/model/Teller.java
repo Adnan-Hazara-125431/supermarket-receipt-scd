@@ -14,6 +14,9 @@ public class Teller {
     }
 
     private double getProductPrice(Product product) {
+        if (product == null) {
+            throw new IllegalArgumentException("Product cannot be null");
+        }
         try {
             return catalog.getUnitPrice(product);
         }

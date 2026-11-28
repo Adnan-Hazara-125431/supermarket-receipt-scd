@@ -441,4 +441,19 @@ public class ReceiptTellerTest {
         }
     }
 
+    @Test
+    void nullProductOffer() {
+        // Arrange
+        SupermarketCatalog catalog = new FakeCatalog();
+        Teller teller = new Teller(catalog);
+
+        // Act and Assert
+        try {
+            teller.addSpecialOffer(SpecialOfferType.TEN_PERCENT_DISCOUNT, null, 10.0);
+            fail("Null product should be rejected");
+        }
+        catch (IllegalArgumentException e) {
+            assertEquals("Product cannot be null", e.getMessage());
+        }
+    }
 }
