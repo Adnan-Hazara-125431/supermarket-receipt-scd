@@ -13,6 +13,13 @@ public class Teller {
         this.catalog = catalog;
     }
 
+    private void validatePromotionalPrice(Product product, double offerValue, int quantity, String errorMessage) {
+        double normalPrice = catalog.getUnitPrice(product) * quantity;
+        if (offerValue > normalPrice || offerValue < 0 || Double.isNaN(offerValue)) {
+            throw new IllegalArgumentException(errorMessage);
+        }
+    }
+
     public void addSpecialOffer(SpecialOfferType offerType, Product product, double offerValue) {
         if (offerType == SpecialOfferType.TEN_PERCENT_DISCOUNT) {
             if (offerValue < 0 || offerValue > 100 || Double.isNaN(offerValue)) {
@@ -20,16 +27,10 @@ public class Teller {
             }
         }
         if (offerType == SpecialOfferType.FIVE_FOR_AMOUNT) {
-            double normalPrice = catalog.getUnitPrice(product) * 5;
-            if (offerValue > normalPrice || offerValue < 0 || Double.isNaN(offerValue)) {
-                throw new IllegalArgumentException("Invalid promotional price for five products");
-            }
+            validatePromotionalPrice(product, offerValue, 5, "Invalid promotional price for five products");
         }
         if (offerType == SpecialOfferType.TWO_FOR_AMOUNT) {
-            double normalPrice = catalog.getUnitPrice(product) * 2;
-            if (offerValue > normalPrice || offerValue < 0 || Double.isNaN(offerValue)) {
-                throw new IllegalArgumentException("Invalid promotional price for two products");
-            }
+            validatePromotionalPrice(product, offerValue, 2, "Invalid promotional price for two products");
         }
         offers.put(product, new Offer(offerType, product, offerValue));
     }
