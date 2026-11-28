@@ -1,0 +1,40 @@
+name: Build, test and deploy
+
+on:
+  push:
+    branches: [main, deploy-pipeline]
+    tags: ['v*']
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Run tests and build the JAR
+        run: mvn -B verify
+
+      - name: Smoke test - run the packaged app
+        run: java -jar target/supermarket-receipt.jar
+
+      - name: Keep the JAR from this run
+        uses: actions/upload-artifact@v7
+        with:
+          name: supermarket-receipt-jar
+          path: target/supermarket-receipt.jar
+
+      - name: Deploy - publish a GitHub Release (only when a version tag like v1.0 is pushed)
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" target/supermarket-receipt.jar --title "$GITHUB_REF_NAME" --generate-notes
