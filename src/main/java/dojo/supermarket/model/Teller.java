@@ -5,7 +5,9 @@ import java.util.List;
 import java.util.Map;
 
 public class Teller {
-
+    private static final double MAX_DISCOUNT = 100.0;
+    private static final int TWO_PRODUCT_QUANTITY = 2;
+    private static final int FIVE_PRODUCT_QUANTITY = 5;
     private final SupermarketCatalog catalog;
     private final Map<Product, Offer> offers = new HashMap<>();
 
@@ -38,15 +40,15 @@ public class Teller {
         }
         if (offerType == SpecialOfferType.TEN_PERCENT_DISCOUNT) {
             getProductPrice(product);
-            if (offerValue < 0 || offerValue > 100 || Double.isNaN(offerValue)) {
+            if (offerValue < 0 || offerValue > MAX_DISCOUNT || Double.isNaN(offerValue)) {
                 throw new IllegalArgumentException("Discount percentage must be between 0 and 100");
             }
         }
         if (offerType == SpecialOfferType.FIVE_FOR_AMOUNT) {
-            validatePromotionalPrice(product, offerValue, 5, "Invalid promotional price for five products");
+            validatePromotionalPrice(product, offerValue, FIVE_PRODUCT_QUANTITY, "Invalid promotional price for five products");
         }
         if (offerType == SpecialOfferType.TWO_FOR_AMOUNT) {
-            validatePromotionalPrice(product, offerValue, 2, "Invalid promotional price for two products");
+            validatePromotionalPrice(product, offerValue,  TWO_PRODUCT_QUANTITY, "Invalid promotional price for two products");
         }
         offers.put(product, new Offer(offerType, product, offerValue));
     }
